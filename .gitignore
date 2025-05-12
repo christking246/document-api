@@ -1,0 +1,9 @@
+# Binaries for programs
+*.exe
+*.out
+
+# env file
+.env
+
+# logs
+logs/**
