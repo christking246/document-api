@@ -212,5 +212,23 @@ func Base(p string) string {
 		p = filepath.ToSlash(p)
 	}
 
+	// should I swap back the slashes?
 	return path.Base(p)
+}
+
+// Dir returns all but the last element of path, typically the path's directory.
+// This is a wrapper for the standard library's path.Dir()
+// since it only handles unix type paths
+func Dir(p string) string {
+	if p == "" {
+		return "."
+	}
+
+	// handle windows paths by switching the slashes
+	if os.PathSeparator == '\\' {
+		p = filepath.ToSlash(p)
+	}
+
+	// should I swap back the slashes?
+	return path.Dir(p)
 }

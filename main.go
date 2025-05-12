@@ -4,7 +4,6 @@ import (
 	"documentApi/data"
 	"documentApi/documenters"
 	"documentApi/utils"
-	"encoding/json"
 	"flag"
 	"os"
 	"path"
@@ -75,29 +74,8 @@ func run(logger *logrus.Logger) {
 		return
 	}
 
-	// read host json file to get the path prepended to all endpoints
-	jsonEntries, err := utils.GetFiles(*repo, []string{".json"}, false, true, true)
-	if err != nil {
-		logger.Warn("Error reading repo '" + *repo + "' to locate host json file: " + err.Error())
-	}
-
-	// TODO: write array filtering function?
-	var apiPrefix string = ""
-	for _, entry := range jsonEntries {
-		if entry.Name == "host.json" {
-			hostFileData, err := os.ReadFile(entry.Path)
-			if err != nil {
-				logger.Warn("Error reading host json file: " + entry.Path + ": " + err.Error())
-				return
-			}
-			var hostData data.ApiMetaData
-			if err := json.Unmarshal(hostFileData, &hostData); err != nil {
-				logger.Warn("Error parsing host file: " + entry.Path + ": " + err.Error())
-				return
-			}
-			apiPrefix = hostData.Extensions.Http.RoutePrefix
-		}
-	}
+	var prefixes = getApiPrefixes(*repo, logger)
+	logger.Debug("Found prefixes: " + strconv.Itoa(len(prefixes)) + " in repo: " + *repo)
 
 	// parse the cs files looking for all the endpoints/triggers
 	var endpointCount = 0
@@ -105,8 +83,9 @@ func run(logger *logrus.Logger) {
 	// should this be multithreaded?
 	for _, entry := range entries {
 		for _, endpoint := range parse(entry, logger) {
-			if len(apiPrefix) > 0 && len(endpoint.Route) > 0 {
-				endpoint.Route = path.Join("/", apiPrefix, endpoint.Route)
+			var prefixKey = utils.Base(utils.Dir(entry.Path))
+			if prefixes[prefixKey] != "" && len(endpoint.Route) > 0 {
+				endpoint.Route = path.Join("/", prefixes[prefixKey], endpoint.Route)
 			}
 
 			endpoints = append(endpoints, endpoint)

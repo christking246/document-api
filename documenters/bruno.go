@@ -143,7 +143,7 @@ func (b BrunoDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, co
 		}
 		defer file.Close()
 
-		var _, writeErr = file.WriteString("vars {\n\t host: http://localhost:7071/\n}")
+		var _, writeErr = file.WriteString("vars {\n\t host: http://localhost:7071/\n}") // TODO: get host from cmd params/env file
 		if writeErr != nil {
 			logger.Warn("BrunoDocumenter SerializeRequests - Error writing bruno environment file: " + writeErr.Error())
 			return true

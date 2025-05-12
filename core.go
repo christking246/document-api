@@ -2,6 +2,8 @@ package main
 
 import (
 	"documentApi/data"
+	"documentApi/utils"
+	"encoding/json"
 	"os"
 	"regexp"
 	"strconv"
@@ -25,6 +27,35 @@ var httpTriggerRegex = regexp.MustCompile(`\[HttpTrigger\([\w.]+,\s*(?<methods>"
 var timeTrigger = regexp.MustCompile(`\[TimerTrigger\("(?<cron>[^"]+)"[^)]*\)\]`)
 
 var pathVarRegex = regexp.MustCompile(`{([a-zA-Z0-9_]+)}`)
+
+// read host json file to get the path prepended to all endpoints in a given package
+func getApiPrefixes(repoPath string, logger *logrus.Logger) map[string]string {
+	jsonEntries, err := utils.GetFiles(repoPath, []string{".json"}, false, true, true)
+	if err != nil {
+		logger.Warn("Error reading repo '" + repoPath + "' to locate host json file: " + err.Error())
+	}
+
+	// TODO: write array filtering function?
+	prefixes := make(map[string]string)
+	for _, entry := range jsonEntries {
+		if entry.Name == "host.json" {
+			var prefixKey = utils.Base(utils.Dir(entry.Path))
+			hostFileData, err := os.ReadFile(entry.Path)
+			if err != nil {
+				logger.Warn("Error reading host json file: " + entry.Path + ": " + err.Error())
+				continue
+			}
+			var hostData data.ApiMetaData
+			if err := json.Unmarshal(hostFileData, &hostData); err != nil {
+				logger.Warn("Error parsing host file: " + entry.Path + ": " + err.Error())
+				continue
+			}
+			prefixes[prefixKey] = hostData.Extensions.Http.RoutePrefix
+		}
+	}
+
+	return prefixes
+}
 
 func parseFunctionHeader(str string, endpoint *data.EndpointMetaData) int {
 	var m = classFunctionRegex.FindStringSubmatchIndex(str)[0]
