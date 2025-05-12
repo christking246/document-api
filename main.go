@@ -26,6 +26,7 @@ var Documenters map[string]documenters.Documenter = make(map[string]documenters.
 func initDocumenters() {
 	Documenters[documenters.RawDocumenter{}.Name()] = documenters.RawDocumenter{}
 	Documenters[documenters.BrunoDocumenter{}.Name()] = documenters.BrunoDocumenter{}
+	Documenters[documenters.MarkdownDocumenter{}.Name()] = documenters.MarkdownDocumenter{}
 }
 
 func writeResults(endpoints []data.EndpointMetaData, docType string, outputDir string, logger *logrus.Logger) {
@@ -47,10 +48,19 @@ func writeResults(endpoints []data.EndpointMetaData, docType string, outputDir s
 	}
 }
 
+func supportedDocumenters() string {
+	stringList := ""
+	for _, doc := range Documenters {
+		stringList += doc.Name() + ", "
+	}
+	stringList += "all"
+	return stringList
+}
+
 func run(logger *logrus.Logger) {
 	runCmd := flag.NewFlagSet("run", flag.ExitOnError)
 	var repo = runCmd.String("repo", DefaultRepoPath, "Path to the repo to parse")
-	var docType = runCmd.String("docType", DefaultDocumenterType, "Documenter type to use (raw, bruno, insomnia, markdown, web, all)") // TODO: only list the active/supported documenters
+	var docType = runCmd.String("docType", DefaultDocumenterType, "Documenter type to use ("+supportedDocumenters()+")")
 	var outputDir = runCmd.String("outputDir", "", "Dir to output documented api files")
 	runCmd.Parse(os.Args[1:])
 
