@@ -5,10 +5,12 @@ import (
 	"documentApi/documenters"
 	"documentApi/utils"
 	"flag"
+	"fmt"
 	"os"
 	"path"
 	"strconv"
 
+	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,6 +22,7 @@ const Version string = "v1.0.0-alpha"
 const DefaultRepoPath string = "."
 
 var DefaultDocumenterType = documenters.RawDocumenter{}.Name()
+var DefaultArgs = map[string]string{}
 
 var Documenters map[string]documenters.Documenter = make(map[string]documenters.Documenter, 4)
 
@@ -58,11 +61,44 @@ func supportedDocumenters() string {
 	return stringList
 }
 
+// This could have been done better, if I used the same naming
+func getDefaultArg(arg string) string {
+	if _, yes := DefaultArgs["loaded"]; !yes {
+		err := godotenv.Load()
+		if err != nil {
+			fmt.Println("Error loading .env file for default args")
+		}
+
+		DefaultArgs["repo"] = os.Getenv("REPO_PATH")
+		DefaultArgs["docType"] = os.Getenv("DOC_TYPE")
+		DefaultArgs["outputDir"] = os.Getenv("OUTPUT_DIR")
+	}
+
+	switch arg {
+	case "repo":
+		if len(DefaultArgs["repo"]) > 0 {
+			return DefaultArgs["repo"]
+		}
+		return DefaultRepoPath
+	case "docType":
+		if len(DefaultArgs["docType"]) > 0 {
+			return DefaultArgs["docType"]
+		}
+		return DefaultDocumenterType
+	case "outputDir":
+		if len(DefaultArgs["outputDir"]) > 0 {
+			return DefaultArgs["outputDir"]
+		}
+		return ""
+	}
+	return ""
+}
+
 func run(logger *logrus.Logger) {
 	runCmd := flag.NewFlagSet("run", flag.ExitOnError)
-	var repo = runCmd.String("repo", DefaultRepoPath, "Path to the repo to parse")
-	var docType = runCmd.String("docType", DefaultDocumenterType, "Documenter type to use ("+supportedDocumenters()+")")
-	var outputDir = runCmd.String("outputDir", "", "Dir to output documented api files")
+	var repo = runCmd.String("repo", getDefaultArg("repo"), "Path to the repo to parse")
+	var docType = runCmd.String("docType", getDefaultArg("docType"), "Documenter type to use ("+supportedDocumenters()+")")
+	var outputDir = runCmd.String("outputDir", getDefaultArg("outputDir"), "Dir to output documented api files")
 	runCmd.Parse(os.Args[1:])
 
 	logger.Info("Processing repo: '" + *repo + "' with documenter: '" + *docType + "' will output to: '" + *outputDir + "'")
