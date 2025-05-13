@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto/rand"
 	"documentApi/data"
 	"fmt"
 	"io"
@@ -8,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -231,4 +233,10 @@ func Dir(p string) string {
 
 	// should I swap back the slashes?
 	return path.Dir(p)
+}
+
+func GenerateId() string {
+	b := make([]byte, 16)
+	rand.Read(b)
+	return fmt.Sprintf("%x-%x-%x-%x-%x%x-%d", b[0:4], b[4:6], b[6:8], b[8:10], b[10:12], b[12:], time.Now().UnixMilli())
 }

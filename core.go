@@ -129,6 +129,7 @@ func parseFunctionHeader(str string, endpoint *data.EndpointMetaData) int {
 	return skipped
 }
 
+// TODO: break this up into smaller functions to write separate unit tests for each?
 func parse(targetFile data.FileMetaData, logger *logrus.Logger) []data.EndpointMetaData {
 	fileData, err := os.ReadFile(targetFile.Path)
 	if err != nil {

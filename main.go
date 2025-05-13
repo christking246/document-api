@@ -21,12 +21,13 @@ const DefaultRepoPath string = "."
 
 var DefaultDocumenterType = documenters.RawDocumenter{}.Name()
 
-var Documenters map[string]documenters.Documenter = make(map[string]documenters.Documenter, 2)
+var Documenters map[string]documenters.Documenter = make(map[string]documenters.Documenter, 4)
 
 func initDocumenters() {
 	Documenters[documenters.RawDocumenter{}.Name()] = documenters.RawDocumenter{}
 	Documenters[documenters.BrunoDocumenter{}.Name()] = documenters.BrunoDocumenter{}
 	Documenters[documenters.MarkdownDocumenter{}.Name()] = documenters.MarkdownDocumenter{}
+	Documenters[documenters.InsomniaDocumenter{}.Name()] = documenters.InsomniaDocumenter{}
 }
 
 func writeResults(endpoints []data.EndpointMetaData, docType string, outputDir string, logger *logrus.Logger) {

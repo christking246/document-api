@@ -91,6 +91,7 @@ func (b BrunoDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, co
 	for _, endpoint := range endpoints {
 		if b.Supports(endpoint.TriggerType) {
 			// TODO: Function name is a not a primary key (can have duplicates), live with this overwriting duplicates endpoints for now
+			// consider adding an id to file name to avoid overwriting?
 			var filePath = path.Join(outputDir, endpoint.Name+b.Extension())
 			file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 			if err != nil {
