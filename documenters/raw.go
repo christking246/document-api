@@ -34,7 +34,9 @@ func (b RawDocumenter) Supports(triggerType string) bool {
 	return true
 }
 
-func (rawDocumenter RawDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, collectionName string, outputDir string, separateFiles bool, logger *logrus.Logger) bool {
+func (rawDocumenter RawDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, collectionName string, outputDir string, separateFiles bool, envVars map[string]string, logger *logrus.Logger) bool {
+	// vars is not used in this documenter
+
 	if separateFiles {
 		// write out the endpoints to individual files
 		// TODO: sort endpoints

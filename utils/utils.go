@@ -235,6 +235,23 @@ func Dir(p string) string {
 	return path.Dir(p)
 }
 
+// HasParent checks if the path p has parent as a parent directory
+// or any ancestor directory.
+func HasParent(p string, parent string) bool {
+	if p == "" || parent == "" {
+		return false // return false if either path is empty
+	}
+
+	for p != "." {
+		if Base(p) == Base(parent) {
+			return true
+		}
+		p = Dir(p)
+	}
+
+	return false
+}
+
 func GenerateId() string {
 	b := make([]byte, 16)
 	rand.Read(b)

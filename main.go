@@ -16,10 +16,11 @@ import (
 
 // TODO: add option to keep old vars (env, path params, etc) from existing collections upon updating
 // TODO: add option to create documentation for a specific list of trigger types
-// TODO: allow loading cmds params from a .env file
+// TODO: should allow more then just host as env var to be passed
 
-const Version string = "v1.0.0-alpha"
+const Version string = "v1.0.0-beta"
 const DefaultRepoPath string = "."
+const DefaultHost string = "http://localhost:7071"
 
 var DefaultDocumenterType = documenters.RawDocumenter{}.Name()
 var DefaultArgs = map[string]string{}
@@ -90,6 +91,28 @@ func getDefaultArg(arg string) string {
 			return DefaultArgs["outputDir"]
 		}
 		return ""
+	case "host":
+		if len(DefaultArgs["host"]) > 0 {
+			return DefaultArgs["host"]
+		}
+		return DefaultHost
+	}
+	return ""
+}
+
+func getCollectionEnvVars(cmd *flag.FlagSet) map[string]string {
+	var collectionEnvVars = make(map[string]string)
+	var host = cmd.String("host", getDefaultArg("host"), "host string to prepend the http endpoints with")
+	collectionEnvVars["host"] = *host
+
+	return collectionEnvVars
+}
+
+func getPrefixKey(p string, prefixes map[string]string) string {
+	for k := range prefixes {
+		if utils.HasParent(p, k) {
+			return k
+		}
 	}
 	return ""
 }
@@ -100,6 +123,8 @@ func run(logger *logrus.Logger) {
 	var docType = runCmd.String("docType", getDefaultArg("docType"), "Documenter type to use ("+supportedDocumenters()+")")
 	var outputDir = runCmd.String("outputDir", getDefaultArg("outputDir"), "Dir to output documented api files")
 	runCmd.Parse(os.Args[1:])
+
+	var collectionEnvVars map[string]string = getCollectionEnvVars(runCmd)
 
 	logger.Info("Processing repo: '" + *repo + "' with documenter: '" + *docType + "' will output to: '" + *outputDir + "'")
 
@@ -130,9 +155,11 @@ func run(logger *logrus.Logger) {
 	// should this be multithreaded?
 	for _, entry := range entries {
 		for _, endpoint := range parse(entry, logger) {
-			var prefixKey = utils.Base(utils.Dir(entry.Path))
+			var prefixKey = getPrefixKey(entry.Path, prefixes)
 			if prefixes[prefixKey] != "" && len(endpoint.Route) > 0 {
 				endpoint.Route = path.Join("/", prefixes[prefixKey], endpoint.Route)
+			} else if prefixes[prefixKey] == "" && len(endpoint.Route) > 0 {
+				logger.Debug("No prefix found for endpoint: " + endpoint.Name + " in file: " + entry.Path)
 			}
 
 			endpoints = append(endpoints, endpoint)
@@ -151,7 +178,7 @@ func run(logger *logrus.Logger) {
 			}
 			// writeResults(endpoints, doc.Name(), outDir, logger)
 			// TODO: pass "separateFiles" as param from user?
-			if !Documenters[doc.Name()].SerializeRequests(endpoints, utils.Base(*repo), outDir, false, logger) {
+			if !Documenters[doc.Name()].SerializeRequests(endpoints, utils.Base(*repo), outDir, false, collectionEnvVars, logger) {
 				logger.Error("Error writing results for documenter: " + doc.Name())
 			} else {
 				logger.Info("Wrote results for documenter '" + doc.Name() + "' to: " + outDir)
@@ -167,7 +194,7 @@ func run(logger *logrus.Logger) {
 	}
 
 	// writeResults(endpoints, *docType, *outputDir, logger)
-	if !Documenters[*docType].SerializeRequests(endpoints, utils.Base(*repo), *outputDir, true, logger) {
+	if !Documenters[*docType].SerializeRequests(endpoints, utils.Base(*repo), *outputDir, true, collectionEnvVars, logger) {
 		logger.Error("Error writing results for documenter: " + Documenters[*docType].Name())
 	} else {
 		logger.Info("Wrote results for documenter: " + Documenters[*docType].Name() + " to: " + *outputDir)

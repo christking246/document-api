@@ -83,7 +83,7 @@ func (b BrunoDocumenter) Supports(triggerType string) bool {
 	return triggerType == data.TriggerType["Http"]
 }
 
-func (b BrunoDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, collectionName string, outputDir string, separateFiles bool, logger *logrus.Logger) bool {
+func (b BrunoDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, collectionName string, outputDir string, separateFiles bool, variables map[string]string, logger *logrus.Logger) bool {
 	// separateFiles is a no-op for bruno, it expects each endpoint to be in a separate file
 
 	// write out the endpoints to individual files
@@ -100,6 +100,7 @@ func (b BrunoDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, co
 			}
 			defer file.Close()
 
+			// since this documenter only supports http triggers we can assume this is a http endpoint and should prepend the host
 			endpoint.Route = path.Join("{{host}}", replacePathVars(endpoint.Route))
 			var _, writeErr = file.WriteString(b.SerializeRequest(endpoint))
 			if writeErr != nil {
@@ -133,8 +134,12 @@ func (b BrunoDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, co
 
 	// any failing operations after this won't cause the whole serialization to fail, but will cause the environment file to be missing
 
+	if len(variables) < 1 {
+		logger.Warn("BrunoDocumenter SerializeRequests - No environment variables provided, skipping environment file creation")
+		return true
+	}
+
 	// create environment file
-	// TODO: this will probably need user customization
 	var brunoEnvFile = path.Join(outputDir, "environments", "local.bru")
 	if utils.InitDir(path.Join(outputDir, "environments"), logger) {
 		file, err := os.OpenFile(brunoEnvFile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
@@ -144,7 +149,13 @@ func (b BrunoDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, co
 		}
 		defer file.Close()
 
-		var _, writeErr = file.WriteString("vars {\n\t host: http://localhost:7071/\n}") // TODO: get host from cmd params/env file
+		var envVarString = "vars {\n"
+		for key, value := range variables {
+			envVarString += fmt.Sprintf("\t %s: %s\n", key, value)
+		}
+		envVarString += "}"
+		var _, writeErr = file.WriteString(envVarString)
+
 		if writeErr != nil {
 			logger.Warn("BrunoDocumenter SerializeRequests - Error writing bruno environment file: " + writeErr.Error())
 			return true
