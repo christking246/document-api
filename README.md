@@ -45,6 +45,8 @@ The preceding example should yield and output folder name "certsCollections" wit
 
 `outputDir` - a directory you want to output the results to. Will resolve to cwd if not provided.
 
+`host` - the host string to prepend to http triggers when outputting to Bruno (and in future Insomnia). Will use `http://localhost:7071` if not provided.
+
 ## 👀 Preview Examples
 
 These examples are based on the cmd run for a local repo: `documentApi.exe --repo "/home/user/repos/Certifications" --docType all --outputDir cert_test`
@@ -64,6 +66,7 @@ Raw output should look something like this:
 Markdown output should look something like this:
 
 ![example markdown output](previews/markdown_output.png)
+![example markdown output render](previews/markdown_render_output.png)
 
 ### Bruno
 

@@ -26,7 +26,7 @@ func (i InsomniaDocumenter) SerializeRequest(endpoint data.EndpointMetaData) str
 }
 
 // this returns the serialized request for a single endpoint
-func (i InsomniaDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, collectionName string, outputDir string, separateFiles bool, logger *logrus.Logger) bool {
+func (i InsomniaDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, collectionName string, outputDir string, separateFiles bool, envVars map[string]string, logger *logrus.Logger) bool {
 	// separateFiles is a no-op for insomnia, it outputs a single collection file
 
 	var filePath = path.Join(outputDir, collectionName+i.Extension())
@@ -47,6 +47,7 @@ func (i InsomniaDocumenter) SerializeRequests(endpoints []data.EndpointMetaData,
 	var sortKey int = 0 // TODO: sort endpoints
 	for _, endpoint := range endpoints {
 		if i.Supports(endpoint.TriggerType) {
+			// since this documenter only supports http triggers we can assume this is a http endpoint and should prepend the host
 			endpoint.Route = path.Join("{{host}}", replacePathVars(endpoint.Route)) // TODO: add host to env vars
 			collectionRequests = append(collectionRequests, data.InsomniaCollectionItem{
 				Url:            endpoint.Route,
