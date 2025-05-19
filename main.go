@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
@@ -18,9 +20,10 @@ import (
 // TODO: add option to create documentation for a specific list of trigger types
 // TODO: should allow more then just host as env var to be passed
 
-const Version string = "v1.0.1-beta"
+const Version string = "v1.0.2-beta" // TODO: move this to a config file
 const DefaultRepoPath string = "."
 const DefaultHost string = "http://localhost:7071"
+const DefaultSortKey string = "name"
 
 var DefaultDocumenterType = documenters.RawDocumenter{}.Name()
 var DefaultArgs = map[string]string{}
@@ -36,7 +39,6 @@ func initDocumenters() {
 
 func writeResults(endpoints []data.EndpointMetaData, docType string, outputDir string, logger *logrus.Logger) {
 	// TODO: some of these documenters don't document a single request per file, e.g. insomnia
-	// TODO: sort endpoints
 	for _, endpoint := range endpoints {
 		if Documenters[docType].Supports(endpoint.TriggerType) {
 			// TODO: Function name is a not a primary key (can have duplicates), live with this overwriting duplicates endpoints for now
@@ -73,6 +75,7 @@ func getDefaultArg(arg string) string {
 		DefaultArgs["repo"] = os.Getenv("REPO_PATH")
 		DefaultArgs["docType"] = os.Getenv("DOC_TYPE")
 		DefaultArgs["outputDir"] = os.Getenv("OUTPUT_DIR")
+		DefaultArgs["sortKey"] = os.Getenv("SORT_KEY")
 	}
 
 	switch arg {
@@ -96,6 +99,11 @@ func getDefaultArg(arg string) string {
 			return DefaultArgs["host"]
 		}
 		return DefaultHost
+	case "sortKey":
+		if len(DefaultArgs["sortKey"]) > 0 {
+			return DefaultArgs["sortKey"]
+		}
+		return DefaultSortKey
 	}
 	return ""
 }
@@ -122,6 +130,7 @@ func run(logger *logrus.Logger) {
 	var repo = runCmd.String("repo", getDefaultArg("repo"), "Path to the repo to parse")
 	var docType = runCmd.String("docType", getDefaultArg("docType"), "Documenter type to use ("+supportedDocumenters()+")")
 	var outputDir = runCmd.String("outputDir", getDefaultArg("outputDir"), "Dir to output documented api files")
+	var endpointSortKey = runCmd.String("sort", getDefaultArg("sortKey"), "the field to sort the endpoints by (name, route, triggerType)")
 	runCmd.Parse(os.Args[1:])
 
 	var collectionEnvVars map[string]string = getCollectionEnvVars(runCmd)
@@ -168,6 +177,20 @@ func run(logger *logrus.Logger) {
 		}
 	}
 	logger.Info("Found " + strconv.Itoa(endpointCount) + " endpoints in repo: " + *repo)
+
+	// sort the endpoints
+	sort.Slice(endpoints, func(i, j int) bool {
+		if strings.EqualFold(*endpointSortKey, "name") {
+			return endpoints[i].Name < endpoints[j].Name
+		}
+		if strings.EqualFold(*endpointSortKey, "route") {
+			return endpoints[i].Route < endpoints[j].Route // this may not be correct
+		}
+		if strings.EqualFold(*endpointSortKey, "triggerType") {
+			return endpoints[i].TriggerType < endpoints[j].TriggerType
+		}
+		return endpoints[i].Name < endpoints[j].Name
+	})
 
 	// begin writing out documentation
 	if *docType == "all" {

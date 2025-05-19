@@ -87,7 +87,6 @@ func (b BrunoDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, co
 	// separateFiles is a no-op for bruno, it expects each endpoint to be in a separate file
 
 	// write out the endpoints to individual files
-	// TODO: sort endpoints
 	for _, endpoint := range endpoints {
 		if b.Supports(endpoint.TriggerType) {
 			// TODO: Function name is a not a primary key (can have duplicates), live with this overwriting duplicates endpoints for now

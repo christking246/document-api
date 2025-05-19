@@ -47,6 +47,8 @@ The preceding example should yield and output folder name "certsCollections" wit
 
 `host` - the host string to prepend to http triggers when outputting to Bruno (and in future Insomnia). Will use `http://localhost:7071` if not provided.
 
+`sort` - the field to sort the resulting endpoints/triggers by. Options: `name`, `route`, `triggerType` (case insensitive). Will use `name` if not provided.
+
 ## 👀 Preview Examples
 
 These examples are based on the cmd run for a local repo: `documentApi.exe --repo "/home/user/repos/Certifications" --docType all --outputDir cert_test`
@@ -96,7 +98,7 @@ To add the generated collection to bruno:
 - [ ] add option to keep old vars (env, path params, etc) from existing collections (like bruno and insomnia) upon updating
 - [ ] add option to create documentation for a specific list of trigger types (http, time, cosmos etc.)
 - [x] add option to specify the host prepended to all the http endpoints
-- [ ] add option to sort by a given field
+- [x] add option to sort by a given field
 - [x] add support for insomnia environments
 
 ## ⛓️‍💥 Known Limitations

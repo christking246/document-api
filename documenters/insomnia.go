@@ -44,7 +44,7 @@ func (i InsomniaDocumenter) SerializeRequests(endpoints []data.EndpointMetaData,
 	var collectionRequests = make([]data.InsomniaCollectionItem, 0, len(endpoints))
 
 	var timeStamp int64 = time.Now().Unix()
-	var sortKey int = 0 // TODO: sort endpoints
+	var sortKey int = 0
 	for _, endpoint := range endpoints {
 		if i.Supports(endpoint.TriggerType) {
 			// since this documenter only supports http triggers we can assume this is a http endpoint and should prepend the host

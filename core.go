@@ -165,8 +165,11 @@ func parse(targetFile data.FileMetaData, logger *logrus.Logger) []data.EndpointM
 			} else {
 				// if this function has no name, it's probably a regular function/method
 				if len(currentEndpoint.Name) > 1 {
-					lineNumber += parseFunctionHeader(fileDataString[runningLength:], &currentEndpoint)
-					// TODO: should 'runningLength' account for the lines that were skipped?
+					var skipped = parseFunctionHeader(fileDataString[runningLength:], &currentEndpoint)
+					for i := lineNumber; i < lineNumber+skipped-1; i++ {
+						runningLength += len(lines[i])
+					}
+					lineNumber += skipped
 					endpoints = append(endpoints, currentEndpoint)
 				}
 				currentEndpoint = data.EndpointMetaData{}

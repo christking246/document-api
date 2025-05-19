@@ -39,7 +39,6 @@ func (rawDocumenter RawDocumenter) SerializeRequests(endpoints []data.EndpointMe
 
 	if separateFiles {
 		// write out the endpoints to individual files
-		// TODO: sort endpoints
 		for _, endpoint := range endpoints {
 			// TODO: Function name is a not a primary key (can have duplicates), live with this overwriting duplicates endpoints for now
 			var filePath = path.Join(outputDir, endpoint.Name+rawDocumenter.Extension())
