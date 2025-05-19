@@ -95,9 +95,9 @@ To add the generated collection to bruno:
 
 - [ ] add option to keep old vars (env, path params, etc) from existing collections (like bruno and insomnia) upon updating
 - [ ] add option to create documentation for a specific list of trigger types (http, time, cosmos etc.)
-- [ ] add option to specify the host prepended to all the http endpoints
+- [x] add option to specify the host prepended to all the http endpoints
 - [ ] add option to sort by a given field
-- [ ] add support for insomnia environments
+- [x] add support for insomnia environments
 
 ## ⛓️‍💥 Known Limitations
 

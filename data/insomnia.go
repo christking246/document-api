@@ -8,8 +8,8 @@ type InsomniaCollection struct {
 		Created  int64  `yaml:"created,omitempty"`
 		Modified int64  `yaml:"modified,omitempty"`
 	} `yaml:"meta,omitempty"`
-	Collection   []InsomniaCollectionItem `yaml:"collection"`
-	Environments []InsomniaEnvironment    `yaml:"environments,omitempty"`
+	Collection  []InsomniaCollectionItem `yaml:"collection"`
+	Environment InsomniaEnvironment      `yaml:"environments,omitempty"` // despite being plural, this is not an array
 	// CookieJar
 }
 
@@ -32,11 +32,14 @@ type InsomniaCollectionItemMeta struct {
 }
 
 type InsomniaEnvironment struct {
-	Name string `yaml:"name"`
-	Meta struct {
-		Id        string `yaml:"id"`
-		Created   int64  `yaml:"created"`
-		Modified  int64  `yaml:"modified"`
-		IsPrivate bool   `yaml:"isPrivate"`
-	}
+	Name string                  `yaml:"name"`
+	Meta InsomniaEnvironmentMeta `yaml:"meta"`
+	Data map[string]string       `yaml:"data"`
+}
+
+type InsomniaEnvironmentMeta struct {
+	Id        string `yaml:"id"`
+	Created   int64  `yaml:"created"`
+	Modified  int64  `yaml:"modified"`
+	IsPrivate bool   `yaml:"isPrivate"`
 }

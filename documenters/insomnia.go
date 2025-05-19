@@ -68,6 +68,17 @@ func (i InsomniaDocumenter) SerializeRequests(endpoints []data.EndpointMetaData,
 
 	collection.Collection = collectionRequests
 
+	collection.Environment = data.InsomniaEnvironment{
+		Name: "Base Environment",
+		Meta: data.InsomniaEnvironmentMeta{
+			Id:        "env_" + utils.GenerateId(),
+			Created:   timeStamp, // TODO: preserve timestamp if updating
+			Modified:  timeStamp,
+			IsPrivate: false,
+		},
+		Data: envVars,
+	}
+
 	err = yaml.NewEncoder(file).Encode(collection)
 	if err != nil {
 		logger.Error("InsomniaDocumenter SerializeRequests - Error saving insomnia collection: " + err.Error())

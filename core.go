@@ -19,7 +19,7 @@ import (
 const DefaultAuth = "DocsToken"
 
 var functionRegex = regexp.MustCompile(`\[Function\((?:nameof\()?"?(?<fname>\w+)"?\)?\)\]`)
-var authenticationRegex = regexp.MustCompile(`\[Require(?:DocsTokenGroups|S2SToken|DocsToken)(?:\((?<groups>[^)]*)\))?\]`)
+var authenticationRegex = regexp.MustCompile(`\[Require(?<type>DocsTokenGroups|S2SToken|DocsToken|PlatformApiAuth)(?:\((?<groups>[^)]*)\))?\]`)
 
 // TODO: parse the whole function/method body?
 var classFunctionRegex = regexp.MustCompile(`(?:public|protected|private)\s+(?:async\s+)?[\w<>]+\s+(?<fname>\w+)\(`)
@@ -181,16 +181,16 @@ func parse(targetFile data.FileMetaData, logger *logrus.Logger) []data.EndpointM
 
 		// authentication
 		var authenticationMatch = authenticationRegex.FindStringSubmatch(line)
-		if len(authenticationMatch) > 0 {
-			if len(authenticationMatch) > 1 && len(authenticationMatch[1]) > 0 {
+		if len(authenticationMatch) > 1 {
+			if len(authenticationMatch) > 2 && len(authenticationMatch[2]) > 0 {
 				// TODO: write function to split by regex
-				var noCommaSpace = strings.ReplaceAll(authenticationMatch[1], ", ", ",")
+				var noCommaSpace = strings.ReplaceAll(authenticationMatch[2], ", ", ",")
 				var noSpace = strings.ReplaceAll(noCommaSpace, " ", ",")
 				var noQuotes = strings.ReplaceAll(noSpace, "\"", "") // this will make it hard to determine if is a docs token group vs "arbitrary string" ... if that's a concern
 				var modes = strings.Split(noQuotes, ",")
 				currentEndpoint.Authentication = append(currentEndpoint.Authentication, modes...)
 			} else {
-				currentEndpoint.Authentication = append(currentEndpoint.Authentication, DefaultAuth)
+				currentEndpoint.Authentication = append(currentEndpoint.Authentication, authenticationMatch[1])
 			}
 		}
 

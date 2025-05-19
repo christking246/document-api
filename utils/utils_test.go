@@ -97,3 +97,64 @@ func Test_Dir_ReturnsCorrectStringForDirPath(t *testing.T) {
 		})
 	}
 }
+
+func Test_HasParent_ReturnsCorrectBoolean(t *testing.T) {
+	tests := []struct {
+		name     string
+		path     string
+		parent   string
+		expected bool
+	}{
+		{
+			name:     "Empty path and parent",
+			path:     "",
+			parent:   "",
+			expected: false,
+		},
+		{
+			name:     "Empty path",
+			path:     "",
+			parent:   "/home/user",
+			expected: false,
+		},
+		{
+			name:     "Empty parent",
+			path:     "/home/user/project",
+			parent:   "",
+			expected: false,
+		},
+		{
+			name:     "Path has direct parent",
+			path:     "/home/user/project",
+			parent:   "/home/user",
+			expected: true,
+		},
+		{
+			name:     "Path has indirect parent",
+			path:     "/home/user/project/src/utils",
+			parent:   "/home/user/project",
+			expected: true,
+		},
+		{
+			name:     "Path has direct parent (windows)",
+			path:     "C:\\home\\user\\project",
+			parent:   "C:\\home\\user",
+			expected: true,
+		},
+		{
+			name:     "Path has indirect parent (windows)",
+			path:     "C:\\home\\user\\project\\src\\utils",
+			parent:   "C:\\home\\user\\project",
+			expected: true,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := HasParent(test.path, test.parent)
+			if result != test.expected {
+				t.Errorf("expected %t, got %t", test.expected, result)
+			}
+		})
+	}
+}
