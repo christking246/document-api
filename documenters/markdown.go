@@ -20,8 +20,8 @@ func (m MarkdownDocumenter) Name() string {
 	return "markdown"
 }
 
-func (m MarkdownDocumenter) SerializeRequest(endpoint data.EndpointMetaData) string {
-	return fmt.Sprintf("| %s | %s | %s | %s | %s | %s | %s |", endpoint.Name, strings.Join(endpoint.Methods, ","), endpoint.Route, strings.Join(endpoint.Authentication, ","), endpoint.TriggerType, strings.ReplaceAll(endpoint.Interval, "*", "\\*"), endpoint.Description)
+func (m MarkdownDocumenter) SerializeRequest(endpoint data.EndpointMetaData) (string, error) {
+	return fmt.Sprintf("| %s | %s | %s | %s | %s | %s | %s |", endpoint.Name, strings.Join(endpoint.Methods, ","), endpoint.Route, strings.Join(endpoint.Authentication, ","), endpoint.TriggerType, strings.ReplaceAll(endpoint.Interval, "*", "\\*"), endpoint.Description), nil
 }
 
 func (m MarkdownDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, collectionName string, outputDir string, separateFiles bool, vars map[string]string, logger *logrus.Logger) bool {
@@ -31,7 +31,12 @@ func (m MarkdownDocumenter) SerializeRequests(endpoints []data.EndpointMetaData,
 	var markDownString string = "| Function Name | Methods | Route | Authentication | TriggerType | Interval | Description |\n"
 	markDownString += "| ---------- | ---------- | ---------- | ---------- | ---------- | ---------- | ---------- |\n"
 	for _, endpoint := range endpoints {
-		markDownString += fmt.Sprintf("%s\n", m.SerializeRequest(endpoint))
+		var serializedRequest, serializationErr = m.SerializeRequest(endpoint)
+		if serializationErr != nil {
+			logger.Warn(serializationErr.Error())
+			continue
+		}
+		markDownString += fmt.Sprintf("%s\n", serializedRequest)
 	}
 	var filePath = path.Join(outputDir, collectionName+m.Extension())
 	file, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)

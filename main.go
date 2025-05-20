@@ -37,6 +37,7 @@ func initDocumenters() {
 	Documenters[documenters.InsomniaDocumenter{}.Name()] = documenters.InsomniaDocumenter{}
 }
 
+// TODO: remove this, why am I still maintaining this
 func writeResults(endpoints []data.EndpointMetaData, docType string, outputDir string, logger *logrus.Logger) {
 	// TODO: some of these documenters don't document a single request per file, e.g. insomnia
 	for _, endpoint := range endpoints {
@@ -50,7 +51,12 @@ func writeResults(endpoints []data.EndpointMetaData, docType string, outputDir s
 			}
 			defer file.Close()
 
-			file.WriteString(Documenters[docType].SerializeRequest(endpoint))
+			var serializedRequest, serializationErr = Documenters[docType].SerializeRequest(endpoint)
+			if serializationErr != nil {
+				logger.Warn(serializationErr.Error())
+				continue
+			}
+			file.WriteString(serializedRequest)
 		}
 	}
 }

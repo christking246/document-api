@@ -3,6 +3,7 @@ package documenters
 import (
 	"documentApi/data"
 	"documentApi/utils"
+	"fmt"
 	"os"
 	"path"
 	"time"
@@ -21,8 +22,8 @@ func (i InsomniaDocumenter) Name() string {
 	return "insomnia"
 }
 
-func (i InsomniaDocumenter) SerializeRequest(endpoint data.EndpointMetaData) string {
-	return ""
+func (i InsomniaDocumenter) SerializeRequest(endpoint data.EndpointMetaData) (string, error) {
+	return "", fmt.Errorf("error `SerializeRequest` not implemented for InsomniaDocumenter")
 }
 
 // this returns the serialized request for a single endpoint
@@ -48,7 +49,7 @@ func (i InsomniaDocumenter) SerializeRequests(endpoints []data.EndpointMetaData,
 	for _, endpoint := range endpoints {
 		if i.Supports(endpoint.TriggerType) {
 			// since this documenter only supports http triggers we can assume this is a http endpoint and should prepend the host
-			endpoint.Route = path.Join("{{host}}", replacePathVars(endpoint.Route)) // TODO: add host to env vars
+			endpoint.Route = path.Join("{{host}}", utils.ReplacePathVars(endpoint.Route)) // TODO: add host to env vars
 			collectionRequests = append(collectionRequests, data.InsomniaCollectionItem{
 				Url:            endpoint.Route,
 				Name:           endpoint.Name,

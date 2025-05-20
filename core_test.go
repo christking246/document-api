@@ -153,3 +153,52 @@ func Test_parse_ReturnsAllDataOnExistingHttpTriggers(t *testing.T) {
 		}
 	}
 }
+
+func Test_searchAuthentication_ReturnsExpectedAuthentication(t *testing.T) {
+	// Arrange
+	tests := []struct {
+		name          string
+		expectedAuths []string
+		authString    string
+	}{
+		{
+			name:          "DocsTokenGroups",
+			expectedAuths: []string{"Learn", "Dirt-box", "Config", "Admin", "SG"},
+			authString:    "[RequireDocsTokenGroups(\"Learn Dirt-box Config Admin SG\")]",
+		},
+		{
+			name:          "DocsToken Read",
+			expectedAuths: []string{"OperationType.Read"},
+			authString:    "[RequireDocsToken(OperationType.Read)]",
+		},
+		{
+			name:          "S2SToken",
+			expectedAuths: []string{"S2S.SkillLessons"},
+			authString:    "[RequireS2SToken(S2S.SkillLessons)]",
+		},
+		{
+			name:          "S2SToken Multiple",
+			expectedAuths: []string{"WLW", "S2S.Percentile"},
+			authString:    "[RequireS2SToken(\"WLW\", S2S.Percentile)]",
+		},
+		{
+			name:          "DocsToken",
+			expectedAuths: []string{"DocsToken"},
+			authString:    "[RequireDocsToken]",
+		},
+		{
+			name:          "PlatformToken",
+			expectedAuths: []string{"PlatformApiAuth"},
+			authString:    "[RequirePlatformApiAuth]",
+		},
+	}
+	var results = make([]data.EndpointMetaData, len(tests))
+
+	// Act && Assert
+	for i, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			searchAuthentication(test.authString, &results[i])
+			utils.AssertSliceEqual(t, test.expectedAuths, results[i].Authentication)
+		})
+	}
+}

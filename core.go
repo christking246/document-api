@@ -26,8 +26,6 @@ var classFunctionRegex = regexp.MustCompile(`(?:public|protected|private)\s+(?:a
 var httpTriggerRegex = regexp.MustCompile(`\[HttpTrigger\([\w.]+,\s*(?<methods>"\w+"\s*,\s*)+\s*Route\s*=\s*(?:"(?<route>[^"]+)"|(?<route>[^])]+))\)\]`)
 var timeTrigger = regexp.MustCompile(`\[TimerTrigger\("(?<cron>[^"]+)"[^)]*\)\]`)
 
-var pathVarRegex = regexp.MustCompile(`{([a-zA-Z0-9_]+)}`)
-
 // read host json file to get the path prepended to all endpoints in a given package
 func getApiPrefixes(repoPath string, logger *logrus.Logger) map[string]string {
 	jsonEntries, err := utils.GetFiles(repoPath, []string{".json"}, false, true, true)
@@ -109,12 +107,7 @@ func parseFunctionHeader(str string, endpoint *data.EndpointMetaData) int {
 			// TODO: consider replacing "Route=null" with empty string or making as an inaccessible path
 			endpoint.Route = httpTriggerRegexMatch[3] // blame go for not having named capture groups
 		}
-		var matches = pathVarRegex.FindAllStringSubmatch(endpoint.Route, -1)
-		if len(matches) > 0 {
-			for _, match := range matches {
-				endpoint.PathParameters = append(endpoint.PathParameters, match[1])
-			}
-		}
+		endpoint.PathParameters = utils.ExtractPathVars(endpoint.Route)
 	}
 
 	// pull out the cron expression if this is a time trigger
@@ -127,6 +120,22 @@ func parseFunctionHeader(str string, endpoint *data.EndpointMetaData) int {
 		return skipped - 1
 	}
 	return skipped
+}
+
+func searchAuthentication(line string, endpoint *data.EndpointMetaData) {
+	var authenticationMatch = authenticationRegex.FindStringSubmatch(line)
+	if len(authenticationMatch) > 1 {
+		if len(authenticationMatch) > 2 && len(authenticationMatch[2]) > 0 {
+			// TODO: write function to split by regex
+			var noCommaSpace = strings.ReplaceAll(authenticationMatch[2], ", ", ",")
+			var noSpace = strings.ReplaceAll(noCommaSpace, " ", ",")
+			var noQuotes = strings.ReplaceAll(noSpace, "\"", "") // this will make it hard to determine if is a docs token group vs "arbitrary string" ... if that's a concern
+			var modes = strings.Split(noQuotes, ",")
+			endpoint.Authentication = append(endpoint.Authentication, modes...)
+		} else {
+			endpoint.Authentication = append(endpoint.Authentication, authenticationMatch[1])
+		}
+	}
 }
 
 // TODO: break this up into smaller functions to write separate unit tests for each?
@@ -182,20 +191,7 @@ func parse(targetFile data.FileMetaData, logger *logrus.Logger) []data.EndpointM
 			currentEndpoint.Name = functionMatch[1]
 		}
 
-		// authentication
-		var authenticationMatch = authenticationRegex.FindStringSubmatch(line)
-		if len(authenticationMatch) > 1 {
-			if len(authenticationMatch) > 2 && len(authenticationMatch[2]) > 0 {
-				// TODO: write function to split by regex
-				var noCommaSpace = strings.ReplaceAll(authenticationMatch[2], ", ", ",")
-				var noSpace = strings.ReplaceAll(noCommaSpace, " ", ",")
-				var noQuotes = strings.ReplaceAll(noSpace, "\"", "") // this will make it hard to determine if is a docs token group vs "arbitrary string" ... if that's a concern
-				var modes = strings.Split(noQuotes, ",")
-				currentEndpoint.Authentication = append(currentEndpoint.Authentication, modes...)
-			} else {
-				currentEndpoint.Authentication = append(currentEndpoint.Authentication, authenticationMatch[1])
-			}
-		}
+		searchAuthentication(line, &currentEndpoint)
 
 		runningLength += len(line) // this can probably added in the 'for' header
 	}

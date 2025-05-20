@@ -55,3 +55,18 @@ func AssertMax(t *testing.T, max int, value int) bool {
 	}
 	return true
 }
+
+// list order must match
+func AssertSliceEqual(t *testing.T, expected []string, actual []string) bool {
+	if len(expected) != len(actual) {
+		t.Errorf("%s", t.Name()+" - Expected: ["+strings.Join(expected, ", ")+"] but got: ["+strings.Join(actual, ", ")+"]")
+		return false
+	}
+	for i := range expected {
+		if expected[i] != actual[i] {
+			t.Errorf("%s", t.Name()+" - Expected: ["+strings.Join(expected, ", ")+"] but got: ["+strings.Join(actual, ", ")+"]")
+			return false
+		}
+	}
+	return true
+}

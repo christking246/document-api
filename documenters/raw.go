@@ -12,14 +12,13 @@ import (
 
 type RawDocumenter struct{}
 
-// TODO: handle errors better
-func (r RawDocumenter) SerializeRequest(endpoint data.EndpointMetaData) string {
+func (r RawDocumenter) SerializeRequest(endpoint data.EndpointMetaData) (string, error) {
 	jsonString, err := json.MarshalIndent(endpoint, "", "    ")
 	if err != nil {
-		return fmt.Sprintf("Error serializing endpoint: %s", err.Error())
+		return "", fmt.Errorf("error serializing endpoint: %s", err.Error())
 	}
 
-	return string(jsonString)
+	return string(jsonString), nil
 }
 
 func (r RawDocumenter) Name() string {
@@ -49,7 +48,12 @@ func (rawDocumenter RawDocumenter) SerializeRequests(endpoints []data.EndpointMe
 			}
 			defer file.Close()
 
-			var _, writeErr = file.WriteString(rawDocumenter.SerializeRequest(endpoint))
+			var serializedRequest, serializationErr = rawDocumenter.SerializeRequest(endpoint)
+			if serializationErr != nil {
+				logger.Warn(serializationErr.Error())
+				continue
+			}
+			var _, writeErr = file.WriteString(serializedRequest)
 			if writeErr != nil {
 				logger.Error("RawDocumenter SerializeRequests - Error writing endpoint file: " + writeErr.Error())
 				return false
@@ -58,7 +62,12 @@ func (rawDocumenter RawDocumenter) SerializeRequests(endpoints []data.EndpointMe
 	} else {
 		var endpointsString string = "["
 		for _, endpoint := range endpoints {
-			endpointsString += fmt.Sprintf("%s,\n", rawDocumenter.SerializeRequest(endpoint))
+			var serializedRequest, serializationErr = rawDocumenter.SerializeRequest(endpoint)
+			if serializationErr != nil {
+				logger.Warn(serializationErr.Error())
+				continue
+			}
+			endpointsString += fmt.Sprintf("%s,\n", serializedRequest)
 		}
 		endpointsString = endpointsString[0:len(endpointsString)-2] + "]"
 		var filePath = path.Join(outputDir, collectionName+rawDocumenter.Extension())

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -17,16 +16,13 @@ type BrunoDocumenter struct{}
 
 // TODO: path parameters that are not immediately preceded by a slash are not handled well by bruno (probably also not insomnia)
 
-var sequence = 1                                           // "static" var to keep track of the sequence number
-var pathVarRegex = regexp.MustCompile(`{([a-zA-Z0-9_]+)}`) // TODO: this is duplicated in core.go, should be moved to a common place.
+var sequence = 1 // "static" var to keep track of the sequence number
 
-// TODO: handle errors better
-func (b BrunoDocumenter) SerializeRequest(endpoint data.EndpointMetaData) string {
+func (b BrunoDocumenter) SerializeRequest(endpoint data.EndpointMetaData) (string, error) {
 	if endpoint.TriggerType != data.TriggerType["Http"] {
-		return fmt.Sprintf("Endpoint %s is not an HTTP trigger", endpoint.Name)
+		return "", fmt.Errorf("endpoint %s is not an HTTP trigger", endpoint.Name)
 	}
 
-	// Implement the serialization logic for Bruno
 	var meta = data.BrunoMeta{
 		Name: endpoint.Name,
 		Type: "http",
@@ -41,13 +37,13 @@ func (b BrunoDocumenter) SerializeRequest(endpoint data.EndpointMetaData) string
 
 	metaJson, err := json.MarshalIndent(meta, "", "  ")
 	if err != nil {
-		return fmt.Sprintf("Error serializing meta: %s", err.Error())
+		return "", fmt.Errorf("error serializing meta: %s", err.Error())
 	}
 	var metaString = strings.ReplaceAll(strings.ReplaceAll(string(metaJson), "\"", ""), ",", "")
 
 	requestJson, err := json.MarshalIndent(request, "", "  ")
 	if err != nil {
-		return fmt.Sprintf("Error serializing request: %s", err.Error())
+		return "", fmt.Errorf("error serializing request: %s", err.Error())
 	}
 	var requestString = strings.ReplaceAll(strings.ReplaceAll(string(requestJson), "\"", ""), ",", "")
 
@@ -68,7 +64,7 @@ func (b BrunoDocumenter) SerializeRequest(endpoint data.EndpointMetaData) string
 	// TODO: avoid adding new lines if portions don't exist
 	// Only using the first request method, this would probably need to be serialized n times to handle all methods
 	// return fmt.Sprintf("meta %s\n\n%s %s\n\nbody:%s {}", metaString, endpoint.Methods[0], requestString, request.Body)
-	return fmt.Sprintf("meta %s\n\n%s %s\n\n%s\n\n%s", metaString, endpoint.Methods[0], requestString, pathParamsString, bodyString)
+	return fmt.Sprintf("meta %s\n\n%s %s\n\n%s\n\n%s", metaString, endpoint.Methods[0], requestString, pathParamsString, bodyString), nil
 }
 
 func (b BrunoDocumenter) Name() string {
@@ -100,8 +96,13 @@ func (b BrunoDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, co
 			defer file.Close()
 
 			// since this documenter only supports http triggers we can assume this is a http endpoint and should prepend the host
-			endpoint.Route = path.Join("{{host}}", replacePathVars(endpoint.Route))
-			var _, writeErr = file.WriteString(b.SerializeRequest(endpoint))
+			endpoint.Route = path.Join("{{host}}", utils.ReplacePathVars(endpoint.Route))
+			var serializedRequest, serializationErr = b.SerializeRequest(endpoint)
+			if serializationErr != nil {
+				logger.Warn(serializationErr.Error())
+				continue
+			}
+			var _, writeErr = file.WriteString(serializedRequest)
 			if writeErr != nil {
 				logger.Error("BrunoDocumenter SerializeRequests - Error writing endpoint file: " + writeErr.Error())
 				return false
@@ -164,21 +165,4 @@ func (b BrunoDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, co
 	}
 
 	return true
-}
-
-// TODO: move this to a utils file
-func replacePathVars(route string) string {
-	// TODO: use pathParameters to replace the path variables in the route
-	var results = pathVarRegex.FindAllStringSubmatch(route, -1)
-
-	// no variables
-	if results == nil {
-		return route
-	}
-
-	for _, result := range results {
-		route = strings.ReplaceAll(route, result[0], ":"+result[1])
-	}
-
-	return route
 }
