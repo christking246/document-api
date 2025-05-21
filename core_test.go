@@ -59,7 +59,7 @@ func Test_parseFunctionHeader_ReturnsExpectedFunctionMetaData(t *testing.T) {
 	utils.AssertStringEqual(t, "get", endpoint.Methods[0])
 	utils.AssertStringEqual(t, "dashboard-summary/{param}", endpoint.Route)
 	utils.AssertEqual(t, 1, len(endpoint.PathParameters))
-	utils.AssertStringEqual(t, "param", endpoint.PathParameters[0])
+	utils.AssertMapContains(t, endpoint.PathParameters, "param")
 
 }
 
@@ -105,7 +105,7 @@ func Test_parse_ReturnsAllDataOnExistingHttpTriggers(t *testing.T) {
 		Name:           "GetInitialInfoAsync",
 		Route:          "sandbox/{moduleId}/info",
 		Methods:        []string{"get"},
-		PathParameters: []string{"moduleId"},
+		PathParameters: map[string]string{"moduleId": ""},
 		TriggerType:    data.TriggerType["Http"],
 	})
 	expectedEndpoints = append(expectedEndpoints, data.EndpointMetaData{
@@ -113,7 +113,7 @@ func Test_parse_ReturnsAllDataOnExistingHttpTriggers(t *testing.T) {
 		Authentication: []string{"OperationType.Read"},
 		Route:          "sandbox/{moduleId}",
 		Methods:        []string{"get"},
-		PathParameters: []string{"moduleId"},
+		PathParameters: map[string]string{"moduleId": ""},
 		TriggerType:    data.TriggerType["Http"],
 	})
 	expectedEndpoints = append(expectedEndpoints, data.EndpointMetaData{
@@ -121,7 +121,7 @@ func Test_parse_ReturnsAllDataOnExistingHttpTriggers(t *testing.T) {
 		Authentication: []string{"DocsToken"},
 		Route:          "sandbox/preprovision/{moduleId}",
 		Methods:        []string{"post"},
-		PathParameters: []string{"moduleId"},
+		PathParameters: map[string]string{"moduleId": ""},
 		TriggerType:    data.TriggerType["Http"],
 	})
 	expectedEndpoints = append(expectedEndpoints, data.EndpointMetaData{

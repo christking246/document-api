@@ -54,7 +54,7 @@ func (i InsomniaDocumenter) SerializeRequests(endpoints []data.EndpointMetaData,
 				Url:            endpoint.Route,
 				Name:           endpoint.Name,
 				Method:         endpoint.Methods[0], // using only the first method for now
-				PathParameters: arrayToMapArray(endpoint.PathParameters),
+				PathParameters: mapToMapArray(endpoint.PathParameters),
 				Meta: data.InsomniaCollectionItemMeta{
 					Id:        "req_" + utils.GenerateId(),
 					Created:   timeStamp, // TODO: preserve timestamp if updating
@@ -93,14 +93,14 @@ func (i InsomniaDocumenter) Supports(triggerType string) bool {
 	return triggerType == data.TriggerType["Http"]
 }
 
-func arrayToMapArray(array []string) []map[string]string {
-	m := make([]map[string]string, 0, len(array))
+func mapToMapArray(flatMap map[string]string) []map[string]string {
+	m := make([]map[string]string, 0, len(flatMap))
 
-	for _, item := range array {
-		keyValue := make(map[string]string)
-		keyValue["name"] = item
-		keyValue["value"] = ""
-		m = append(m, keyValue)
+	for key, value := range flatMap {
+		currentMap := make(map[string]string)
+		currentMap["name"] = key
+		currentMap["value"] = value
+		m = append(m, currentMap)
 	}
 
 	return m

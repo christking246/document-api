@@ -8,16 +8,16 @@ type FileMetaData struct {
 }
 
 type EndpointMetaData struct {
-	Name           string   `json:"name"`
-	Authentication []string `json:"authentication,omitempty"`
-	Route          string   `json:"route,omitempty"`
-	Methods        []string `json:"methods,omitempty"`
-	PathParameters []string `json:"pathParameters,omitempty"`
-	Description    string   `json:"description,omitempty"` // TODO: use ai to generate this?
-	Body           string   `json:"body,omitempty"`        // potentially a json string...parse the cs classes to get the body?
-	ResponseCodes  []int    `json:"responseCodes,omitempty"`
-	Interval       string   `json:"interval,omitempty"` // for time triggers, the cron expression
-	TriggerType    string   `json:"triggerType,omitempty"`
+	Name           string            `json:"name"`
+	Authentication []string          `json:"authentication,omitempty"`
+	Route          string            `json:"route,omitempty"`
+	Methods        []string          `json:"methods,omitempty"`
+	PathParameters map[string]string `json:"pathParameters,omitempty"`
+	Description    string            `json:"description,omitempty"` // TODO: use ai to generate this?
+	Body           string            `json:"body,omitempty"`        // potentially a json string...parse the cs classes to get the body?
+	ResponseCodes  []int             `json:"responseCodes,omitempty"`
+	Interval       string            `json:"interval,omitempty"` // for time triggers, the cron expression
+	TriggerType    string            `json:"triggerType,omitempty"`
 }
 
 func (e EndpointMetaData) String() string {

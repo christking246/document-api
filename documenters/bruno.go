@@ -54,8 +54,8 @@ func (b BrunoDocumenter) SerializeRequest(endpoint data.EndpointMetaData) (strin
 	var pathParamsString = ""
 	if len(endpoint.PathParameters) > 0 {
 		pathParamsString += "params:path {\n"
-		for _, param := range endpoint.PathParameters {
-			pathParamsString += fmt.Sprintf("  %s: \n", param)
+		for name, value := range endpoint.PathParameters {
+			pathParamsString += fmt.Sprintf("  %s: %s\n", name, value)
 		}
 		pathParamsString += "}"
 	}

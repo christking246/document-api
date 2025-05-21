@@ -21,7 +21,7 @@ func (m MarkdownDocumenter) Name() string {
 }
 
 func (m MarkdownDocumenter) SerializeRequest(endpoint data.EndpointMetaData) (string, error) {
-	return fmt.Sprintf("| %s | %s | %s | %s | %s | %s | %s |", endpoint.Name, strings.Join(endpoint.Methods, ","), endpoint.Route, strings.Join(endpoint.Authentication, ","), endpoint.TriggerType, strings.ReplaceAll(endpoint.Interval, "*", "\\*"), endpoint.Description), nil
+	return fmt.Sprintf("| %s | %s | %s | %s | %s | %s | %s |", endpoint.Name, strings.Join(endpoint.Methods, ", "), endpoint.Route, strings.Join(endpoint.Authentication, ", "), endpoint.TriggerType, strings.ReplaceAll(endpoint.Interval, "*", "\\*"), endpoint.Description), nil
 }
 
 func (m MarkdownDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, collectionName string, outputDir string, separateFiles bool, vars map[string]string, logger *logrus.Logger) bool {

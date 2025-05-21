@@ -107,5 +107,5 @@ To add the generated collection to bruno:
 - Functions with the same name will overwrite previous outputs (particularly in Bruno collections)
 - Functions that are commented out will still be treated as active
 - Does not resolve route correctly if it constructed from with variables
-- Routes with path variables that aren't immediately followed by the `/` will not resolve correctly in bruno and insomnia
+- ~~Routes with path variables that aren't immediately followed by the `/` will not resolve correctly in bruno and insomnia~~
 - Will only document the first http request method in the list for a given route/function (bruno and insomnia)
