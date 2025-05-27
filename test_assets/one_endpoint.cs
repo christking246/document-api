@@ -7,8 +7,16 @@ using System.Threading.Tasks;
 
 namespace Repo.API
 {
-    public class DashboardApi(ITelemetryEventTracker telemetry, IDashboardService dashboardService, IAuditLogger auditLogger, ILogger<DashboardApi> logger)
+    public class DashboardApi
     {
+        public DashboardApi(ITelemetryEventTracker telemetry, IDashboardService dashboardService, IAuditLogger auditLogger, ILogger<DashboardApi> logger)
+        {
+            this.telemetry = telemetry;
+            this.dashboardService = dashboardService;
+            this.auditLogger = auditLogger;
+            this.logger = logger;
+        }
+
         private readonly IAuditLogger auditLogger = auditLogger;
         private readonly ILogger logger = logger;
 

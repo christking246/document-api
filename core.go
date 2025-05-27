@@ -19,7 +19,7 @@ import (
 const DefaultAuth = "DocsToken"
 
 var functionRegex = regexp.MustCompile(`\[Function\((?:nameof\()?"?(?<fname>\w+)"?\)?\)\]`)
-var authenticationRegex = regexp.MustCompile(`\[Require(?<type>DocsTokenGroups|S2SToken|DocsToken|PlatformApiAuth)(?:\((?<groups>[^)]*)\))?\]`)
+var authenticationRegex = regexp.MustCompile(`\[Require(?<type>DocsTokenGroups|S2SToken|DocsToken|PlatformApiAuth|IdToken)(?:\((?<groups>[^)]*)\))?\]`)
 
 // TODO: parse the whole function/method body?
 var classFunctionRegex = regexp.MustCompile(`(?:public|protected|private)\s+(?:async\s+)?[\w<>]+\s+(?<fname>\w+)\(`)
@@ -159,7 +159,6 @@ func parse(targetFile data.FileMetaData, logger *logrus.Logger) []data.EndpointM
 
 	var endpoints = []data.EndpointMetaData{}
 	var currentEndpoint data.EndpointMetaData
-	var first = true
 	var runningLength = 0
 
 	for lineNumber := 0; lineNumber < len(lines); lineNumber++ { // need this be closer to a counter for loop, because I will probably need to jump through lines
@@ -169,20 +168,16 @@ func parse(targetFile data.FileMetaData, logger *logrus.Logger) []data.EndpointM
 		// save the collected metadata so far
 		var classFunctionMatch = classFunctionRegex.FindStringSubmatch(line)
 		if len(classFunctionMatch) > 0 {
-			if first {
-				first = false
-			} else {
-				// if this function has no name, it's probably a regular function/method
-				if len(currentEndpoint.Name) > 1 {
-					var skipped = parseFunctionHeader(fileDataString[runningLength:], &currentEndpoint)
-					for i := lineNumber; i < lineNumber+skipped-1; i++ {
-						runningLength += len(lines[i])
-					}
-					lineNumber += skipped
-					endpoints = append(endpoints, currentEndpoint)
+			// if this function has no name, it's probably a regular function/method
+			if len(currentEndpoint.Name) > 1 {
+				var skipped = parseFunctionHeader(fileDataString[runningLength:], &currentEndpoint)
+				for i := lineNumber; i < lineNumber+skipped-1; i++ {
+					runningLength += len(lines[i])
 				}
-				currentEndpoint = data.EndpointMetaData{}
+				lineNumber += skipped
+				endpoints = append(endpoints, currentEndpoint)
 			}
+			currentEndpoint = data.EndpointMetaData{}
 		}
 
 		// function name
