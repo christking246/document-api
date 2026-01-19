@@ -21,15 +21,15 @@ func (m MarkdownDocumenter) Name() string {
 }
 
 func (m MarkdownDocumenter) SerializeRequest(endpoint data.EndpointMetaData) (string, error) {
-	return fmt.Sprintf("| %s | %s | %s | %s | %s | %s | %s |", endpoint.Name, strings.Join(endpoint.Methods, ", "), endpoint.Route, strings.Join(endpoint.Authentication, ", "), endpoint.TriggerType, strings.ReplaceAll(endpoint.Interval, "*", "\\*"), endpoint.Description), nil
+	return fmt.Sprintf("| %s | %s | %s | %s | %s | %s | %s | %s |", endpoint.Name, strings.ToUpper(strings.Join(endpoint.Methods, ", ")), endpoint.Route, strings.Join(endpoint.Authentication, ", "), endpoint.TriggerType, strings.ReplaceAll(endpoint.Interval, "*", "\\*"), endpoint.Description, endpoint.FilePath), nil
 }
 
 func (m MarkdownDocumenter) SerializeRequests(endpoints []data.EndpointMetaData, collectionName string, outputDir string, separateFiles bool, vars map[string]string, logger *logrus.Logger) bool {
 	// separateFiles is a no-op for markdown, it does not make sense to write a table column per file
 	// vars is not used in this documenter
 
-	var markDownString string = "| Function Name | Methods | Route | Authentication | TriggerType | Interval | Description |\n"
-	markDownString += "| ---------- | ---------- | ---------- | ---------- | ---------- | ---------- | ---------- |\n"
+	var markDownString string = "| Function Name | Methods | Route | Authentication | TriggerType | Interval | Description | File Path |\n"
+	markDownString += "| ---------- | ---------- | ---------- | ---------- | ---------- | ---------- | ---------- | ---------- |\n"
 	for _, endpoint := range endpoints {
 		var serializedRequest, serializationErr = m.SerializeRequest(endpoint)
 		if serializationErr != nil {

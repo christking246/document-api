@@ -175,6 +175,7 @@ func parse(targetFile data.FileMetaData, logger *logrus.Logger) []data.EndpointM
 					runningLength += len(lines[i])
 				}
 				lineNumber += skipped
+				currentEndpoint.FilePath = targetFile.Path
 				endpoints = append(endpoints, currentEndpoint)
 			}
 			currentEndpoint = data.EndpointMetaData{}

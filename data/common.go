@@ -18,6 +18,7 @@ type EndpointMetaData struct {
 	ResponseCodes  []int             `json:"responseCodes,omitempty"`
 	Interval       string            `json:"interval,omitempty"` // for time triggers, the cron expression
 	TriggerType    string            `json:"triggerType,omitempty"`
+	FilePath       string            `json:"filePath,omitempty"` // the file where this endpoint is located
 }
 
 func (e EndpointMetaData) String() string {

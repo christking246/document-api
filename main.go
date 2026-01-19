@@ -20,7 +20,7 @@ import (
 // TODO: add option to create documentation for a specific list of trigger types
 // TODO: should allow more then just host as env var to be passed
 
-const Version string = "v1.0.4-beta"
+const Version string = "v1.0.5-beta"
 const DefaultRepoPath string = "."
 const DefaultHost string = "http://localhost:7071"
 const DefaultSortKey string = "name"
