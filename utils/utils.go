@@ -257,3 +257,18 @@ func GenerateId() string {
 	rand.Read(b)
 	return fmt.Sprintf("%x-%x-%x-%x-%x%x-%d", b[0:4], b[4:6], b[6:8], b[8:10], b[10:12], b[12:], time.Now().UnixMilli())
 }
+
+// padRight pads a string to the right with the specified character
+func PadRight(v string, n int, c string) string {
+	if len(v) >= n {
+		return v
+	}
+
+	for len(v) < n {
+		v = v + c
+		if len(v) >= n {
+			break
+		}
+	}
+	return v
+}

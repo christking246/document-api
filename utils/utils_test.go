@@ -158,3 +158,106 @@ func Test_HasParent_ReturnsCorrectBoolean(t *testing.T) {
 		})
 	}
 }
+
+func Test_PadRight_PadsStringCorrectly(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		length   int
+		padChar  string
+		expected string
+	}{
+		{
+			name:     "pad hello with spaces",
+			input:    "hello",
+			length:   10,
+			padChar:  " ",
+			expected: "hello     ",
+		},
+		{
+			name:     "pad test with dashes",
+			input:    "test",
+			length:   8,
+			padChar:  "-",
+			expected: "test----",
+		},
+		{
+			name:     "pad empty string with hashes",
+			input:    "",
+			length:   4,
+			padChar:  "#",
+			expected: "####",
+		},
+		{
+			name:     "pad single char to same length",
+			input:    "a",
+			length:   1,
+			padChar:  " ",
+			expected: "a",
+		},
+		{
+			name:     "string already longer than target",
+			input:    "already long",
+			length:   5,
+			padChar:  " ",
+			expected: "already long",
+		},
+		{
+			name:     "exact length match",
+			input:    "exact",
+			length:   5,
+			padChar:  " ",
+			expected: "exact",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := PadRight(test.input, test.length, test.padChar)
+			if result != test.expected {
+				t.Errorf("expected %q, got %q", test.expected, result)
+			}
+		})
+	}
+}
+
+func Test_PadRight_HandlesZeroAndNegativeLength(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		length   int
+		padChar  string
+		expected string
+	}{
+		{
+			name:     "zero length",
+			input:    "test",
+			length:   0,
+			padChar:  " ",
+			expected: "test",
+		},
+		{
+			name:     "negative length -1",
+			input:    "hello",
+			length:   -1,
+			padChar:  " ",
+			expected: "hello",
+		},
+		{
+			name:     "negative length -5",
+			input:    "world",
+			length:   -5,
+			padChar:  "x",
+			expected: "world",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := PadRight(test.input, test.length, test.padChar)
+			if result != test.expected {
+				t.Errorf("expected %q, got %q", test.expected, result)
+			}
+		})
+	}
+}
