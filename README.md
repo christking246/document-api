@@ -7,9 +7,13 @@ is changed (or OpenApi decorators missing altogether), to out of date README des
 Document Api supports multiple output formats for documentation, including `bru` or `yaml` files to import Requests into bruno
 and insomnia, markdown files that can used to update our Repo READMEs and `raw type` which is a json representation of all the triggers.
 
+The application can be used both as a **CLI tool** for direct command-line execution and as an **MCP (Model Context Protocol) server** for integration with AI assistants and other tools.
+
 ## 📖 Table of contents
 
 - [🚀 Getting started](#-getting-started)
+- [🖥️ CLI Usage](#️-cli-usage)
+- [🔗 MCP Server Usage](#-mcp-server-usage)
 - [💾 Supported Outputs](#-supported-outputs)
 - [⌨️ CMD Args](#️-cmd-args)
 - [👀 Preview Examples](#-preview-examples)
@@ -18,17 +22,75 @@ and insomnia, markdown files that can used to update our Repo READMEs and `raw t
 
 ## 🚀 Getting started
 
-Go is required to be installed to run this project from src. You can find a guide on installing Go for your system [here](https://go.dev/doc/install)
+Go is required to be installed to run this project from src. You can find a guide on installing Go for your system in the [official Go installation documentation](https://go.dev/doc/install)
 
 1. Make an .env file at the root of the project directory, with your values for the variables in .env.sample
 
 2. Build a binary with `go build -o documentApi.exe`.
 *On Windows it is important to include the ".exe" extension so it knows that it is an executable file and can be run.*
 
-3. Run documentApi.exe and specify the path to repo you would like to document. Example:
-`documentApi.exe --repo "/home/user/repos/Certifications" --docType all --outputDir certsCollections`
+The application supports multiple operation modes:
 
-The preceding example should yield and output folder name "certsCollections" with all the supported output formats, each in its own directory.
+## 🖥️ CLI Usage
+
+### Running the CLI tool
+
+Run documentApi.exe with the `run` command and specify the path to repo you would like to document. Example:
+
+```bash
+documentApi.exe run --repo "/home/user/repos/Certifications" --docType all --outputDir certsCollections
+```
+
+The preceding example should yield an output folder named "certsCollections" with all the supported output formats, each in its own directory.
+
+## 🔗 MCP Server Usage
+
+The application can also run as an MCP (Model Context Protocol) server, allowing integration with AI assistants and other tools.
+
+### Starting the MCP Server
+
+```bash
+documentApi.exe serve
+```
+
+By default, the server runs on port 8080. You can customize this by setting the `SERVER_PORT` environment variable.
+
+### Available MCP Tools
+
+The MCP server exposes the following tools:
+
+- **`version`**: Get the current version of the application
+- **`document`**: Generate API documentation with the same functionality as the CLI `run` command
+
+### MCP Configuration Example
+
+To use this as an MCP server with Claude Desktop, add the following to your MCP configuration:
+
+```json
+{
+  "mcpServers": {
+    "documentApi": {
+      "command": "documentApi.exe",
+      "args": ["serve"],
+      "env": {
+        "SERVER_PORT": "8080"
+      }
+    }
+  }
+}
+```
+
+And Vscode:
+
+```json
+"mcp": {
+    "servers": {
+        "document-api-mcp-server": {
+        "url": "http://localhost:8080"
+        }
+    }
+}
+```
 
 ## 💾 Supported Outputs
 
@@ -38,6 +100,10 @@ The preceding example should yield and output folder name "certsCollections" wit
 - ✅ Insomnia - Insomnia collection file
 
 ## ⌨️ CMD Args
+
+### CLI Arguments
+
+When using the `run` command, the following arguments are available:
 
 `repo` - path to the repo/project you want to generate documentation on. Will use cwd if not provided.
 
@@ -100,6 +166,7 @@ To add the generated collection to bruno:
 - [x] add option to specify the host prepended to all the http endpoints
 - [x] add option to sort by a given field
 - [x] add support for insomnia environments
+- [ ] add HTTPS support for MCP server
 
 ## ⛓️‍💥 Known Limitations
 

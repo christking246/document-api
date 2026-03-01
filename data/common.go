@@ -33,3 +33,12 @@ type ApiMetaData struct {
 		} `json:"http"`
 	} `json:"extensions"`
 }
+
+// TODO: add more description to this struct to add context for MCP usage
+type RunParams struct {
+	Repo              *string
+	DocType           *string
+	OutputDir         *string           `json:"outputDir,omitempty"`
+	EndpointSortKey   *string           `json:"sort,omitempty"`
+	CollectionEnvVars map[string]string `json:"collectionEnvVars,omitempty"`
+}
